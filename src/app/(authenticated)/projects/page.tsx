@@ -6,7 +6,7 @@ import { Plus, Edit2, Trash2, CheckCircle2, Circle, Clock, ChevronRight, Briefca
 import { Modal } from '@/components/ui/Modal';
 import { useForm as useRHForm } from 'react-hook-form';
 import clsx from 'clsx';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 
 export default function ProjectsPage() {
   const { projects, clients, tasks, addProject, updateProject, deleteProject, toggleProjectShare, addTask, updateTask, deleteTask } = useAppStore();
@@ -247,7 +247,15 @@ export default function ProjectsPage() {
                       <p className={clsx("text-sm font-medium", task.status === 'Done' ? "text-navy-300 line-through" : "text-white")}>
                         {task.title}
                       </p>
-                      <p className="text-xs text-navy-400 mt-0.5">{task.status}</p>
+                      {task.description && (
+                        <p className="text-xs text-navy-400 mt-0.5 line-clamp-2">{task.description}</p>
+                      )}
+                      <p className="text-xs text-navy-500 mt-1">
+                        {task.status}
+                        {task.updated_at && task.updated_at !== task.created_at && (
+                          <span className="ml-2 text-navy-600">· updated {formatDistanceToNow(new Date(task.updated_at), { addSuffix: true })}</span>
+                        )}
+                      </p>
                     </div>
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                       <button onClick={() => openEditTaskModal(task)} className="p-1.5 text-navy-400 hover:text-cyan-400"><Edit2 className="w-3.5 h-3.5" /></button>
@@ -344,7 +352,7 @@ function ProjectForm({ project, clients, onClose, onSubmit }: { project: Project
 
 function TaskForm({ task, onClose, onSubmit }: { task: Task | null, onClose: () => void, onSubmit: (data: any) => void }) {
   const { register, handleSubmit } = useRHForm({
-    defaultValues: task || { status: 'To Do' }
+    defaultValues: task || { status: 'To Do', description: '' }
   });
 
   return (
@@ -352,6 +360,15 @@ function TaskForm({ task, onClose, onSubmit }: { task: Task | null, onClose: () 
       <div>
         <label className="block text-sm font-medium text-navy-200">Task Title</label>
         <input {...register('title', { required: true })} type="text" className="mt-1 block w-full rounded-xl border-0 bg-navy-900/50 py-2 px-3 text-white shadow-sm ring-1 ring-inset ring-navy-700 focus:ring-2 focus:ring-cyan-500 sm:text-sm" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-navy-200">Description <span className="text-navy-500">(optional)</span></label>
+        <textarea
+          {...register('description')}
+          rows={3}
+          placeholder="Add details, notes, or acceptance criteria..."
+          className="mt-1 block w-full rounded-xl border-0 bg-navy-900/50 py-2 px-3 text-white shadow-sm ring-1 ring-inset ring-navy-700 focus:ring-2 focus:ring-cyan-500 sm:text-sm resize-none"
+        />
       </div>
       <div>
         <label className="block text-sm font-medium text-navy-200">Status</label>

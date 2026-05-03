@@ -37,7 +37,9 @@ export interface Task {
   id: string;
   project_id: string;
   title: string;
+  description: string;
   status: 'To Do' | 'In Progress' | 'Done';
+  updated_at: string;
   created_at: string;
 }
 
@@ -284,19 +286,25 @@ export const useAppStore = create<AppState>((set, get) => ({
   updateTask: async (id, updatedFields) => {
     const { data: task, error } = await supabase
       .from('tasks')
-      .update(updatedFields)
+      .update({ ...updatedFields, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()
       .single();
 
     if (error) { console.error(error); return; }
 
-    if (updatedFields.status === 'Done') {
+    // Log status changes to the activity feed
+    if (updatedFields.status) {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        const type = updatedFields.status === 'Done' ? 'TASK_COMPLETED' : 'STATUS_UPDATED';
+        const description = updatedFields.status === 'Done'
+          ? `Completed task: "${task.title}"`
+          : `Task "${task.title}" moved to ${updatedFields.status}`;
+
         const { data: activity } = await supabase
           .from('activities')
-          .insert([{ user_id: user.id, type: 'TASK_COMPLETED', description: `Completed task: ${task.title}` }])
+          .insert([{ user_id: user.id, type, description }])
           .select()
           .single();
         if (activity) {

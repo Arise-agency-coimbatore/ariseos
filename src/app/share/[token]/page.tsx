@@ -18,6 +18,7 @@ interface Project {
 interface Task {
   id: string;
   title: string;
+  description?: string;
   status: 'To Do' | 'In Progress' | 'Done';
 }
 
@@ -62,7 +63,7 @@ export default function SharePage() {
 
       const { data: taskData, error: taskError } = await supabase
         .from('tasks')
-        .select('id, title, status')
+        .select('id, title, description, status')
         .eq('project_id', projectData.id)
         .order('created_at', { ascending: true });
 
@@ -160,8 +161,11 @@ export default function SharePage() {
                   </h3>
                   <div className="space-y-2">
                     {todoTasks.map(task => (
-                      <div key={task.id} className="text-sm text-slate-300 bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-700/50">
-                        {task.title}
+                      <div key={task.id} className="bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-700/50">
+                        <div className="text-sm text-slate-300 font-medium">{task.title}</div>
+                        {task.description && (
+                          <div className="text-xs text-slate-500 mt-1 line-clamp-2">{task.description}</div>
+                        )}
                       </div>
                     ))}
                     {todoTasks.length === 0 && <p className="text-xs text-slate-600 text-center py-2">Nothing here</p>}
@@ -175,8 +179,11 @@ export default function SharePage() {
                   </h3>
                   <div className="space-y-2">
                     {inProgressTasks.map(task => (
-                      <div key={task.id} className="text-sm text-slate-200 bg-orange-900/20 rounded-lg px-3 py-2 border border-orange-700/30">
-                        {task.title}
+                      <div key={task.id} className="bg-orange-900/20 rounded-lg px-3 py-2 border border-orange-700/30">
+                        <div className="text-sm text-slate-200 font-medium">{task.title}</div>
+                        {task.description && (
+                          <div className="text-xs text-orange-900/60 mt-1 line-clamp-2">{task.description}</div>
+                        )}
                       </div>
                     ))}
                     {inProgressTasks.length === 0 && <p className="text-xs text-slate-600 text-center py-2">Nothing here</p>}
@@ -190,8 +197,11 @@ export default function SharePage() {
                   </h3>
                   <div className="space-y-2">
                     {doneTasks.map(task => (
-                      <div key={task.id} className="text-sm text-slate-400 line-through bg-green-900/20 rounded-lg px-3 py-2 border border-green-700/30">
-                        {task.title}
+                      <div key={task.id} className="bg-green-900/20 rounded-lg px-3 py-2 border border-green-700/30">
+                        <div className="text-sm text-slate-400 font-medium line-through">{task.title}</div>
+                        {task.description && (
+                          <div className="text-xs text-green-900/40 mt-1 line-clamp-2 line-through">{task.description}</div>
+                        )}
                       </div>
                     ))}
                     {doneTasks.length === 0 && <p className="text-xs text-slate-600 text-center py-2">Nothing here</p>}

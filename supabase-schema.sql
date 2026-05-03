@@ -47,9 +47,15 @@ CREATE TABLE public.tasks (
   user_id uuid references auth.users(id) on delete cascade not null,
   project_id uuid references public.projects(id) on delete cascade not null,
   title text not null,
+  description text,
   status text check (status in ('To Do', 'In Progress', 'Done')) default 'To Do',
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+-- If you already ran the schema, run these ALTER commands instead:
+-- ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS description text;
+-- ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone default timezone('utc'::text, now());
 
 -- 5. Create Activities Table (for activity log)
 CREATE TABLE public.activities (
