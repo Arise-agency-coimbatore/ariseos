@@ -3,20 +3,17 @@
 import { useAppStore } from '@/store';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { PipelineChart } from '@/components/dashboard/PipelineChart';
-import { DollarSign, Users, Activity, TrendingUp, UserPlus } from 'lucide-react';
+import { DollarSign, Users, Activity, Briefcase, FolderKanban, CheckCircle2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function DashboardPage() {
-  const { leads, campaigns, activities } = useAppStore();
+  const { leads, projects, tasks, activities } = useAppStore();
 
   const totalRevenue = leads.reduce((acc, lead) => acc + (lead.revenue_value || 0), 0);
   const activeLeads = leads.filter(l => l.status !== 'Closed').length;
   
-  const totalConversions = campaigns.reduce((acc, camp) => acc + camp.conversions, 0);
-  const totalClicks = campaigns.reduce((acc, camp) => acc + camp.clicks, 0);
-  const conversionRate = totalClicks > 0 ? ((totalConversions / totalClicks) * 100).toFixed(2) : '0';
-
-  const newCustomers = leads.filter(l => l.status === 'Closed').length;
+  const activeProjects = projects.filter(p => p.status === 'Active').length;
+  const completedTasks = tasks.filter(t => t.status === 'Done').length;
 
   const pipelineData = [
     { name: 'New/Contacted', value: leads.filter(l => l.status === 'New' || l.status === 'Contacted').length },
@@ -35,20 +32,20 @@ export default function DashboardPage() {
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard title="Total Revenue" value={`$${totalRevenue.toLocaleString()}`} change="+12.5%" isPositive={true} icon={DollarSign} />
+        <MetricCard title="Total Revenue Pipeline" value={`$${totalRevenue.toLocaleString()}`} change="+12.5%" isPositive={true} icon={DollarSign} />
         <MetricCard title="Active Leads" value={activeLeads.toString()} change="+5.2%" isPositive={true} icon={Users} />
-        <MetricCard title="Conversion Rate" value={`${conversionRate}%`} change="-1.1%" isPositive={false} icon={Activity} />
-        <MetricCard title="New Customers" value={newCustomers.toString()} change="+18.2%" isPositive={true} icon={UserPlus} />
+        <MetricCard title="Active Projects" value={activeProjects.toString()} change="Steady" isPositive={true} icon={FolderKanban} />
+        <MetricCard title="Tasks Completed" value={completedTasks.toString()} change="+3 this week" isPositive={true} icon={CheckCircle2} />
       </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 glass-card p-6">
-          <h3 className="text-lg font-semibold text-white mb-2">Revenue & Leads</h3>
+          <h3 className="text-lg font-semibold text-white mb-2">Revenue & Leads Pipeline</h3>
           <RevenueChart />
         </div>
         <div className="glass-card p-6">
-          <h3 className="text-lg font-semibold text-white mb-2">Sales Pipeline</h3>
+          <h3 className="text-lg font-semibold text-white mb-2">Sales Pipeline Status</h3>
           <PipelineChart data={pipelineData} />
         </div>
       </div>
@@ -60,8 +57,9 @@ export default function DashboardPage() {
           {activities.slice(0, 5).map((activity) => (
             <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-xl bg-navy-900/40 border border-navy-700/30">
               <div className="flex-shrink-0 mt-0.5">
-                {activity.type === 'LEAD_ADDED' && <UserPlus className="h-5 w-5 text-cyan-400" />}
-                {activity.type === 'CAMPAIGN_CREATED' && <TrendingUp className="h-5 w-5 text-orange-400" />}
+                {activity.type === 'LEAD_ADDED' && <Users className="h-5 w-5 text-cyan-400" />}
+                {activity.type === 'PROJECT_CREATED' && <FolderKanban className="h-5 w-5 text-orange-400" />}
+                {activity.type === 'TASK_COMPLETED' && <CheckCircle2 className="h-5 w-5 text-green-400" />}
                 {activity.type === 'STATUS_UPDATED' && <Activity className="h-5 w-5 text-blue-400" />}
               </div>
               <div className="flex-1 min-w-0">
@@ -83,10 +81,10 @@ export default function DashboardPage() {
 
 function MetricCard({ title, value, change, isPositive, icon: Icon }: any) {
   return (
-    <div className="glass-card p-5 group">
+    <div className="glass-card p-5 group hover:bg-navy-800/80 transition-colors">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-navy-200">{title}</p>
-        <div className="p-2 bg-navy-800/50 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+        <div className="p-2 bg-navy-800/50 rounded-lg group-hover:bg-cyan-500/20 transition-colors">
           <Icon className="h-5 w-5 text-cyan-400" />
         </div>
       </div>

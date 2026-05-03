@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, Megaphone, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, FolderKanban, Briefcase, Settings, LogOut } from 'lucide-react';
 import clsx from 'clsx';
 import { supabase } from '@/lib/supabase';
 // import { useAuthStore } from '@/store/auth';
@@ -10,8 +10,9 @@ import { supabase } from '@/lib/supabase';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Leads', href: '/leads', icon: Users },
-  { name: 'Campaigns', href: '/campaigns', icon: Megaphone },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Clients', href: '/clients', icon: Briefcase },
+  { name: 'Projects', href: '/projects', icon: FolderKanban },
+  // { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 export function Sidebar() {
