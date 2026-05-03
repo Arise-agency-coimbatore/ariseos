@@ -137,11 +137,7 @@ export default function LeadsPage() {
             if (editingLead) {
               updateLead(editingLead.id, data);
             } else {
-              addLead({
-                ...data,
-                id: Math.random().toString(),
-                created_at: new Date().toISOString(),
-              } as Lead);
+              addLead(data);
             }
             setIsModalOpen(false);
           }}
