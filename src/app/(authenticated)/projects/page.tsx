@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAppStore, Project, Task, Client } from '@/store';
-import { Plus, Edit2, Trash2, CheckCircle2, Circle, Clock, ChevronRight, Briefcase } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle2, Circle, Clock, ChevronRight, Briefcase, FolderKanban } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { useForm as useRHForm } from 'react-hook-form';
 import clsx from 'clsx';
