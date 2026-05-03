@@ -105,46 +105,64 @@ export default function SharePage() {
             <p className="text-slate-400 text-sm max-w-xs mx-auto">{error}</p>
           </div>
         ) : project ? (
-          <div className="space-y-8">
-            {/* Project Header */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
-                    <FolderKanban className="w-6 h-6 text-cyan-400" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">{project.name}</h2>
-                    {project.due_date && (
-                      <p className="text-sm text-slate-400 mt-1 flex items-center gap-1.5">
-                        <CalendarDays className="w-3.5 h-3.5" />
-                        Due {format(new Date(project.due_date), 'MMMM d, yyyy')}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <span className={clsx(
-                  'self-start sm:self-auto inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-semibold ring-1 ring-inset',
-                  project.status === 'Planning' ? 'bg-blue-400/10 text-blue-400 ring-blue-400/30' :
-                  project.status === 'Active' ? 'bg-cyan-400/10 text-cyan-400 ring-cyan-400/30' :
-                  project.status === 'On Hold' ? 'bg-orange-400/10 text-orange-400 ring-orange-400/30' :
-                  'bg-green-400/10 text-green-400 ring-green-400/30'
-                )}>
-                  {project.status}
-                </span>
-              </div>
+          <div className="space-y-8 animate-fade-in">
+            {/* Greeting & Quick Status */}
+            <div className="text-center space-y-4">
+              <h2 className="text-3xl font-bold text-white tracking-tight">
+                Hello! Here's your project update.
+              </h2>
+              <p className="text-slate-400 max-w-xl mx-auto">
+                We're committed to keeping you informed. Below is the real-time status of <span className="text-cyan-400 font-semibold">{project.name}</span> and our current progress on the roadmap.
+              </p>
+            </div>
 
-              {/* Progress Bar */}
-              <div className="mt-6">
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-slate-400">Overall Progress</span>
-                  <span className="text-white font-semibold">{doneTasks.length} / {tasks.length} tasks done ({progress}%)</span>
+            {/* Status Hero Card */}
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl relative overflow-hidden group shadow-2xl">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 blur-[100px] -mr-32 -mt-32 rounded-full" />
+              
+              <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div className="space-y-6 flex-1">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-cyan-500 mb-2">Current Project Status</p>
+                    <div className="flex items-center gap-4">
+                      <div className={clsx(
+                        "w-4 h-4 rounded-full animate-pulse shadow-[0_0_15px_rgba(6,182,212,0.5)]",
+                        project.status === 'Planning' ? 'bg-blue-400' :
+                        project.status === 'Active' ? 'bg-cyan-400' :
+                        project.status === 'On Hold' ? 'bg-orange-400' :
+                        'bg-green-400'
+                      )} />
+                      <h3 className="text-4xl font-black text-white tracking-tighter uppercase italic">
+                        {project.status}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-8">
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Completion Rate</p>
+                      <p className="text-2xl font-bold text-white">{progress}%</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Target Date</p>
+                      <p className="text-2xl font-bold text-white">
+                        {project.due_date ? format(new Date(project.due_date), 'MMM d, yyyy') : 'TBD'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="w-full bg-slate-800 rounded-full h-2.5">
-                  <div
-                    className="h-2.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-700"
-                    style={{ width: `${progress}%` }}
-                  />
+
+                <div className="flex-shrink-0 w-full md:w-48 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-widest px-1">
+                    <span>Progress</span>
+                    <span>{doneTasks.length} / {tasks.length} Done</span>
+                  </div>
+                  <div className="w-full bg-white/5 border border-white/5 rounded-2xl h-4 p-1">
+                    <div
+                      className="h-full rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-cyan-400 transition-all duration-1000 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
