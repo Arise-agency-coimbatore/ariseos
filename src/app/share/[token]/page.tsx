@@ -34,26 +34,39 @@ export default function SharePage() {
     if (!token) return;
 
     const fetchSharedProject = async () => {
+      // First: fetch project by share_token without auth (anon key)
       const { data: projectData, error: projectError } = await supabase
         .from('projects')
-        .select('id, name, status, due_date, is_public')
+        .select('id, name, status, due_date, is_public, share_token')
         .eq('share_token', token)
-        .eq('is_public', true)
         .single();
 
-      if (projectError || !projectData) {
-        setError('This project link is invalid or sharing has been disabled by the owner.');
+      if (projectError) {
+        console.error('[Share page] Supabase error:', projectError);
+        if (projectError.code === 'PGRST116') {
+          setError('No project found with this link. The owner may have disabled sharing.');
+        } else {
+          setError(`Could not load project (${projectError.code}). Please ensure public share policies are set up in Supabase.`);
+        }
+        setLoading(false);
+        return;
+      }
+
+      if (!projectData?.is_public) {
+        setError('The owner has disabled sharing for this project.');
         setLoading(false);
         return;
       }
 
       setProject(projectData);
 
-      const { data: taskData } = await supabase
+      const { data: taskData, error: taskError } = await supabase
         .from('tasks')
         .select('id, title, status')
         .eq('project_id', projectData.id)
         .order('created_at', { ascending: true });
+
+      if (taskError) console.error('[Share page] Tasks error:', taskError);
 
       setTasks(taskData || []);
       setLoading(false);
