@@ -27,7 +27,12 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-slate-950 text-white selection:bg-cyan-500/30">
+        <main className="flex-1">{children}</main>
+        <footer className="py-6 text-center text-xs text-navy-400 border-t border-white/5">
+          made by young minds of india | powered by <a href="https://ariseagency.in" target="_blank" rel="noopener noreferrer" className="text-cyan-500/80 hover:text-cyan-400 transition-colors">Ariseagency.in</a>
+        </footer>
+      </body>
     </html>
   );
 }

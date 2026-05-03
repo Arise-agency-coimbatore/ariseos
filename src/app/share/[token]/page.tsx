@@ -228,9 +228,7 @@ export default function SharePage() {
               </div>
             )}
 
-            <p className="text-center text-xs text-slate-600 pt-4">
-              Powered by AriseOS · Read-only shared view
-            </p>
+
           </div>
         ) : null}
       </div>
