@@ -32,8 +32,14 @@ CREATE TABLE public.projects (
   name text not null,
   status text check (status in ('Planning', 'Active', 'Completed', 'On Hold')) default 'Planning',
   due_date date,
+  share_token uuid default gen_random_uuid() unique not null,
+  is_public boolean default false not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+-- If you already ran the schema before, run these ALTER commands instead:
+-- ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS share_token uuid DEFAULT gen_random_uuid() UNIQUE NOT NULL;
+-- ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS is_public boolean DEFAULT false NOT NULL;
 
 -- 4. Create Tasks Table
 CREATE TABLE public.tasks (
@@ -85,7 +91,20 @@ CREATE POLICY "Users can only delete their own tasks" ON public.tasks FOR DELETE
 CREATE POLICY "Users can only view their own activities" ON public.activities FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can only insert their own activities" ON public.activities FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- 8. Setup Realtime
+-- 9. Public share policies (allows read-only via share link, no auth required)
+CREATE POLICY "Public can view shared projects by token" ON public.projects
+  FOR SELECT USING (is_public = true);
+
+CREATE POLICY "Public can view tasks of shared projects" ON public.tasks
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.projects
+      WHERE projects.id = tasks.project_id
+      AND projects.is_public = true
+    )
+  );
+
+-- 10. Setup Realtime
 alter publication supabase_realtime add table public.leads;
 alter publication supabase_realtime add table public.clients;
 alter publication supabase_realtime add table public.projects;

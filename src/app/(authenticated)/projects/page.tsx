@@ -2,14 +2,14 @@
 
 import { useState } from 'react';
 import { useAppStore, Project, Task, Client } from '@/store';
-import { Plus, Edit2, Trash2, CheckCircle2, Circle, Clock, ChevronRight, Briefcase, FolderKanban } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle2, Circle, Clock, ChevronRight, Briefcase, FolderKanban, Share2, Link2, X } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { useForm as useRHForm } from 'react-hook-form';
 import clsx from 'clsx';
 import { format } from 'date-fns';
 
 export default function ProjectsPage() {
-  const { projects, clients, tasks, addProject, updateProject, deleteProject, addTask, updateTask, deleteTask } = useAppStore();
+  const { projects, clients, tasks, addProject, updateProject, deleteProject, toggleProjectShare, addTask, updateTask, deleteTask } = useAppStore();
   
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -17,6 +17,8 @@ export default function ProjectsPage() {
   
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  const [shareToast, setShareToast] = useState('');
 
   const selectedProject = projects.find(p => p.id === selectedProjectId);
   const projectTasks = tasks.filter(t => t.project_id === selectedProjectId);
@@ -59,8 +61,30 @@ export default function ProjectsPage() {
     updateTask(task.id, { status: nextStatus });
   };
 
+  const handleShare = async (project: Project, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const token = await toggleProjectShare(project.id);
+    if (token) {
+      const url = `${window.location.origin}/share/${token}`;
+      await navigator.clipboard.writeText(url);
+      setShareToast('Share link copied to clipboard!');
+    } else {
+      setShareToast('Sharing disabled for this project.');
+    }
+    setTimeout(() => setShareToast(''), 3000);
+  };
+
   return (
-    <div className="flex h-full flex-col lg:flex-row gap-6">
+    <div className="flex h-full flex-col lg:flex-row gap-6 relative">
+      {/* Toast */}
+      {shareToast && (
+        <div className="fixed top-5 right-5 z-50 flex items-center gap-3 glass-card border border-cyan-500/30 px-4 py-3 rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.2)] text-sm text-white animate-fade-in">
+          <Link2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+          {shareToast}
+          <button onClick={() => setShareToast('')}><X className="w-4 h-4 text-navy-400 hover:text-white" /></button>
+        </div>
+      )}
+
       {/* Projects List (Left Column) */}
       <div className={clsx("flex-1 lg:max-w-md flex flex-col space-y-4", selectedProjectId ? "hidden lg:flex" : "flex")}>
         <div className="flex items-center justify-between">
@@ -77,7 +101,7 @@ export default function ProjectsPage() {
           </button>
         </div>
 
-        <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+        <div className="space-y-3 flex-1 overflow-y-auto pr-2">
           {projects.map((project) => {
             const client = clients.find(c => c.id === project.client_id);
             const pTasks = tasks.filter(t => t.project_id === project.id);
@@ -95,7 +119,7 @@ export default function ProjectsPage() {
                     : "glass-card hover:bg-navy-800/50"
                 )}
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-base font-semibold text-white truncate">{project.name}</h3>
                     {client && (
@@ -105,7 +129,7 @@ export default function ProjectsPage() {
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
                     <span className={clsx(
                       'inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset',
                       project.status === 'Planning' ? 'bg-blue-400/10 text-blue-400 ring-blue-400/30' :
@@ -115,6 +139,19 @@ export default function ProjectsPage() {
                     )}>
                       {project.status}
                     </span>
+                    {/* Share toggle button */}
+                    <button
+                      onClick={(e) => handleShare(project, e)}
+                      title={project.is_public ? 'Sharing on — click to disable' : 'Share this project'}
+                      className={clsx(
+                        'p-1.5 rounded-lg transition-colors',
+                        project.is_public
+                          ? 'text-cyan-400 bg-cyan-400/10 hover:bg-red-500/10 hover:text-red-400'
+                          : 'text-navy-400 bg-navy-800/50 hover:text-cyan-400'
+                      )}
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
                 
@@ -162,6 +199,17 @@ export default function ProjectsPage() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
+                {selectedProject?.is_public && (
+                  <a
+                    href={`/share/${selectedProject.share_token}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors"
+                    title="Preview share page"
+                  >
+                    <Link2 className="w-4 h-4" />
+                  </a>
+                )}
                 <button onClick={() => openEditProjectModal(selectedProject!)} className="p-2 rounded-lg bg-navy-800 text-navy-300 hover:text-white transition-colors">
                   <Edit2 className="w-4 h-4" />
                 </button>
@@ -223,7 +271,7 @@ export default function ProjectsPage() {
             if (editingProject) {
               updateProject(editingProject.id, data);
             } else {
-              addProject(data as Omit<Project, 'id' | 'created_at'>);
+              addProject(data as Omit<Project, 'id' | 'created_at' | 'share_token'>);
             }
             setIsProjectModalOpen(false);
           }}

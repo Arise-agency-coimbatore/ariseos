@@ -28,6 +28,8 @@ export interface Project {
   name: string;
   status: 'Planning' | 'Active' | 'Completed' | 'On Hold';
   due_date: string;
+  share_token: string;
+  is_public: boolean;
   created_at: string;
 }
 
@@ -67,9 +69,10 @@ interface AppState {
   deleteClient: (id: string) => Promise<void>;
 
   // Project Actions
-  addProject: (project: Omit<Project, 'id' | 'created_at'>) => Promise<void>;
+  addProject: (project: Omit<Project, 'id' | 'created_at' | 'share_token'>) => Promise<void>;
   updateProject: (id: string, updatedFields: Partial<Project>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
+  toggleProjectShare: (id: string) => Promise<string | null>;
 
   // Task Actions
   addTask: (task: Omit<Task, 'id' | 'created_at'>) => Promise<void>;
@@ -240,6 +243,27 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (!error) {
       set((state) => ({ projects: state.projects.filter(p => p.id !== id) }));
     }
+  },
+
+  toggleProjectShare: async (id) => {
+    const project = (await supabase.from('projects').select('is_public, share_token').eq('id', id).single()).data;
+    if (!project) return null;
+
+    const newIsPublic = !project.is_public;
+    const { data: updated, error } = await supabase
+      .from('projects')
+      .update({ is_public: newIsPublic })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) { console.error(error); return null; }
+
+    set((state) => ({
+      projects: state.projects.map(p => p.id === id ? updated : p)
+    }));
+
+    return newIsPublic ? updated.share_token : null;
   },
 
   addTask: async (taskData) => {
